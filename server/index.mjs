@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -25,22 +26,6 @@ const PORT = Number(process.env.PORT) || 3030;
 const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '2mb' }));
-
-app.get('/', (_, res) => {
-  res.type('html').send(`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>GreetEase API</title></head>
-<body style="font-family:system-ui;max-width:40rem;margin:2rem auto;padding:0 1rem">
-  <h1>GreetEase API</h1>
-  <p>This URL is the <strong>backend</strong> (REST). There is no full app UI here.</p>
-  <p>Open the web app: <a href="http://localhost:5299">http://localhost:5299</a> (run <code>npm run dev</code> or <code>npm run dev:all</code>).</p>
-  <h2>Quick checks</h2>
-  <ul>
-    <li><a href="/api/health">GET /api/health</a></li>
-    <li><a href="/api/contacts">GET /api/contacts</a></li>
-    <li><code>POST /api/telegram/test</code> — Telegram bot test (optional JSON <code>{"chat_id":"..."}</code>)</li>
-  </ul>
-</body></html>`);
-});
 
 const now = () => new Date().toISOString();
 
@@ -736,11 +721,40 @@ app.post('/api/llm', async (req, res) => {
   }
 });
 
+const distPath = path.join(projectRoot, 'dist');
+const distIndex = path.join(distPath, 'index.html');
+if (fs.existsSync(distIndex)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(distIndex);
+  });
+} else {
+  app.get('/', (_, res) => {
+    res.type('html').send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>GreetEase API</title></head>
+<body style="font-family:system-ui;max-width:40rem;margin:2rem auto;padding:0 1rem">
+  <h1>GreetEase API</h1>
+  <p>This URL is the <strong>backend</strong> (REST). No production UI build found (<code>dist/</code>).</p>
+  <p>Locally: run <code>npm run dev</code> (Vite) or <code>npm run dev:all</code>. For production, run <code>npm run build</code> then start this server.</p>
+  <h2>Quick checks</h2>
+  <ul>
+    <li><a href="/api/health">GET /api/health</a></li>
+    <li><a href="/api/contacts">GET /api/contacts</a></li>
+    <li><code>POST /api/telegram/test</code> — Telegram bot test (optional JSON <code>{"chat_id":"..."}</code>)</li>
+  </ul>
+</body></html>`);
+  });
+}
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   const hasKey = Boolean(
     (process.env.OPENAI_API_KEY || process.env.BIANXIE_API_KEY || process.env.API_KEY)?.trim()
   );
   const hasTelegram = Boolean(getEffectiveTelegramToken());
+  if (fs.existsSync(distIndex)) {
+    console.log(`GreetEase serving API + static UI from ${distPath}`);
+  }
   console.log(`GreetEase API listening on http://127.0.0.1:${PORT}  (and http://localhost:${PORT})`);
   console.log(`Data store: ${DATA_FILE}`);
   console.log(`LLM (OpenAI-compatible): ${chatCompletionsUrl()}`);
