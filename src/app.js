@@ -1,5 +1,2 @@
-/**
- * Entry when the host uses Root Directory `src` + Start Command `node app.js`
- * (e.g. misconfigured Render). Real server: ../server/index.mjs
- */
-import '../server/index.mjs';
+/** Entry when Render uses Root Directory `src` + `node app.js` — build if needed, then server. */
+import '../scripts/render-start.mjs';

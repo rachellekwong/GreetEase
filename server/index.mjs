@@ -721,13 +721,29 @@ app.post('/api/llm', async (req, res) => {
   }
 });
 
-const distPath = path.join(projectRoot, 'dist');
-const distIndex = path.join(distPath, 'index.html');
-if (fs.existsSync(distIndex)) {
-  app.use(express.static(distPath));
+/** Vite output may be next to server/ or relative to process.cwd() if the host cwd differs. */
+function resolveProductionDist() {
+  const dirs = [
+    path.join(projectRoot, 'dist'),
+    path.join(process.cwd(), 'dist'),
+    path.join(process.cwd(), '..', 'dist'),
+  ];
+  for (const dir of dirs) {
+    const idx = path.join(dir, 'index.html');
+    if (fs.existsSync(idx)) return { dir, index: idx };
+  }
+  return null;
+}
+
+const productionDist = resolveProductionDist();
+const distPath = productionDist?.dir ?? path.join(projectRoot, 'dist');
+const distIndex = productionDist?.index ?? path.join(distPath, 'index.html');
+
+if (productionDist) {
+  app.use(express.static(productionDist.dir));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
-    res.sendFile(distIndex);
+    res.sendFile(productionDist.index);
   });
 } else {
   app.get('/', (_, res) => {
@@ -752,8 +768,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     (process.env.OPENAI_API_KEY || process.env.BIANXIE_API_KEY || process.env.API_KEY)?.trim()
   );
   const hasTelegram = Boolean(getEffectiveTelegramToken());
-  if (fs.existsSync(distIndex)) {
-    console.log(`GreetEase serving API + static UI from ${distPath}`);
+  if (productionDist) {
+    console.log(`GreetEase serving API + static UI from ${productionDist.dir}`);
   }
   console.log(`GreetEase API listening on http://127.0.0.1:${PORT}  (and http://localhost:${PORT})`);
   console.log(`Data store: ${DATA_FILE}`);
