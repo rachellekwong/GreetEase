@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.github
+*.md
+.DS_Store
+.env
+.env.*
+ai_api_key.env
+telegram_api.env
+whatsapp_api.env
+data
+.cursor
+*.log

@@ -1,0 +1,19 @@
+# Local Docker: create telegram_api.env / ai_api_key.env from the *.example files (optional if unused).
+services:
+  greetease:
+    build: .
+    ports:
+      - "3030:3030"
+    env_file:
+      - path: telegram_api.env
+        required: false
+      - path: ai_api_key.env
+        required: false
+    environment:
+      PORT: "3030"
+    volumes:
+      - greetease-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  greetease-data:

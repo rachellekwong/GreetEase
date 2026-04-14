@@ -279,7 +279,11 @@ export default function ChatHistory() {
                           m.kind === 'in' ? (
                             <div key={m.id} className="flex justify-start">
                               <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-bl-md bg-white border border-slate-200 shadow-sm px-3.5 py-2.5">
-                                <p className="text-xs font-medium text-sky-700 mb-1">They wrote</p>
+                                <p className="text-xs font-medium text-sky-700 mb-1">
+                                  {thread.displayName?.trim()
+                                    ? `${thread.displayName.trim()} wrote`
+                                    : 'They wrote'}
+                                </p>
                                 <p className="text-sm text-slate-800 whitespace-pre-wrap break-words">{m.text}</p>
                                 <p className="text-[10px] text-slate-400 mt-1.5">
                                   {m.at ? format(new Date(m.at), 'MMM d, yyyy · h:mm a') : ''}

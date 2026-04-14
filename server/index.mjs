@@ -6,6 +6,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { loadStore, saveStore, DATA_FILE } from './store.mjs';
+import { seedDefaults } from './seed-defaults.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..');
@@ -37,6 +38,36 @@ function persist() {
   } catch (e) {
     console.error('[GreetEase] Failed to save data store:', e.message);
   }
+}
+
+function seedDataIfEmpty() {
+  const seedContacts = Array.isArray(store.contacts) && store.contacts.length === 0;
+  const seedHolidays = Array.isArray(store.holidays) && store.holidays.length === 0;
+  if (!seedContacts && !seedHolidays) return;
+
+  let wrote = false;
+  if (seedContacts && Array.isArray(seedDefaults.contacts) && seedDefaults.contacts.length > 0) {
+    store.contacts = seedDefaults.contacts.map((row) => ({
+      ...row,
+      id: row.id || id(),
+      created_date: row.created_date || now(),
+    }));
+    wrote = true;
+  }
+  if (seedHolidays && Array.isArray(seedDefaults.holidays) && seedDefaults.holidays.length > 0) {
+    store.holidays = seedDefaults.holidays.map((row) => ({
+      ...row,
+      id: row.id || id(),
+      created_date: row.created_date || now(),
+    }));
+    wrote = true;
+  }
+  if (!wrote) return;
+
+  persist();
+  console.log(
+    `[GreetEase] Seeded defaults (contacts=${store.contacts.length}, holidays=${store.holidays.length})`
+  );
 }
 
 function defaultWorkspace() {
@@ -104,6 +135,8 @@ async function syncBotProfileFromTelegram(token) {
 function id() {
   return crypto.randomUUID();
 }
+
+seedDataIfEmpty();
 
 function parseScheduledAt(dateStr, timeStr) {
   if (!dateStr) return null;
