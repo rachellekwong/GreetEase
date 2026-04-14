@@ -70,6 +70,20 @@ function seedDataIfEmpty() {
   );
 }
 
+function seedTelegramTokenDefaultIfMissing() {
+  ensureWorkspace();
+  const existing = store.workspace.telegram_bot_token?.trim();
+  if (existing) return;
+
+  const envToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!envToken) return;
+
+  // Local/demo convenience: copy env token into workspace store once when empty.
+  store.workspace.telegram_bot_token = envToken;
+  persist();
+  console.log('[GreetEase] Seeded workspace telegram bot token from environment');
+}
+
 function defaultWorkspace() {
   return {
     display_name: '',
@@ -137,6 +151,7 @@ function id() {
 }
 
 seedDataIfEmpty();
+seedTelegramTokenDefaultIfMissing();
 
 function parseScheduledAt(dateStr, timeStr) {
   if (!dateStr) return null;
