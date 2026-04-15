@@ -40,6 +40,16 @@ export const seedDefaults = {
       notes: '',
       is_active: true,
     },
+    {
+      name: 'Gabriel',
+      email: '',
+      phone: '',
+      telegram_chat_id: '7969156993',
+      group: 'friends',
+      tone_override: 'warm',
+      notes: '',
+      is_active: true,
+    },
   ],
   holidays: [
     {
