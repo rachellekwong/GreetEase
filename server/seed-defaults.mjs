@@ -5,9 +5,9 @@ export const seedDefaults = {
       email: '',
       phone: '',
       telegram_chat_id: '8680234960',
-      group: 'friends',
+      group: 'family',
       tone_override: 'warm',
-      notes: 'Update phone/chat ID after first sync.',
+      notes: '',
       is_active: true,
     },
     {
